@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const NodeCache = require('node-cache');
+const mycache = new NodeCache();
+
 
 const Contact = require('../models/contacts');
+const CacheController = require('../controllers/cachecontroller');
 
 //Retrieve data
 router.get('/contacts', (req, res, next)=>{
@@ -40,6 +44,18 @@ router.delete('/contact/:id', (req, res, next)=>{
             res.status(200).send(result);
         }
     });
+});
+
+router.get('/cachedResponse', (req,res,next)=>{
+    if(mycache.has('uniqueKey')){
+        console.log('retrieved from cache!');
+        let result = mycache.get('uniqueKey');
+        res.status(200).json({msg:result});
+    }else{
+        let result = CacheController.heavyComputation();
+        mycache.set('uniqueKey',result);
+        res.status(200).json({msg:result})
+    };
 });
 
 module.exports = router;
